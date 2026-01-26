@@ -92,10 +92,13 @@ except Exception as e:
     st.error(f"Error loading data: {e}")
     st.stop()
 
+# Header
 st.title("📊 Business Revenue & Performance Dashboard")
+st.markdown("---")
 
 # Sidebar filters
 st.sidebar.header("Filters")
+st.sidebar.markdown("")
 categories = st.sidebar.multiselect("Category", df["Category"].unique())
 channels = st.sidebar.multiselect("Channel", df["Channel"].unique())
 regions = st.sidebar.multiselect("Region", df["Region"].unique())
@@ -108,20 +111,80 @@ if channels:
 if regions:
     filtered = filtered[filtered["Region"].isin(regions)]
 
-# KPIs
-col1, col2, col3 = st.columns(3)
-col1.metric("Total Revenue", f"£{filtered['Revenue'].sum():,.0f}")
-col2.metric("Units Sold", f"{filtered['Units_Sold'].sum():,.0f}")
-asp = filtered["Revenue"].sum() / max(filtered["Units_Sold"].sum(), 1)
-col3.metric("Avg Selling Price", f"£{asp:.2f}")
+# KPIs Section with container for visual distinction
+with st.container():
+    st.markdown("### Key Performance Indicators")
+    st.markdown("")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric(
+            label="Total Revenue",
+            value=f"£{filtered['Revenue'].sum():,.0f}",
+            delta=None
+        )
+    
+    with col2:
+        st.metric(
+            label="Units Sold",
+            value=f"{filtered['Units_Sold'].sum():,.0f}",
+            delta=None
+        )
+    
+    with col3:
+        asp = filtered["Revenue"].sum() / max(filtered["Units_Sold"].sum(), 1)
+        st.metric(
+            label="Average Selling Price",
+            value=f"£{asp:.2f}",
+            delta=None
+        )
+    
+    st.markdown("")
 
-# Revenue trend
-trend = (
-    filtered
-    .groupby(pd.Grouper(key="Date", freq="W"))["Revenue"]
-    .sum()
-    .reset_index()
-)
+st.markdown("---")
+st.markdown("")
 
-fig = px.line(trend, x="Date", y="Revenue", title="Weekly Revenue Trend")
-st.plotly_chart(fig, use_container_width=True)
+# Revenue trend section
+with st.container():
+    st.markdown("### Revenue Trend Analysis")
+    st.markdown("")
+    
+    trend = (
+        filtered
+        .groupby(pd.Grouper(key="Date", freq="W"))["Revenue"]
+        .sum()
+        .reset_index()
+    )
+    
+    fig = px.line(
+        trend, 
+        x="Date", 
+        y="Revenue",
+        labels={"Date": "Date", "Revenue": "Revenue (£)"},
+        color_discrete_sequence=["#1f77b4"]
+    )
+    fig.update_layout(
+        title=None,
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        xaxis=dict(
+            gridcolor="rgba(128,128,128,0.2)",
+            showline=True,
+            linecolor="rgba(128,128,128,0.3)",
+            title_font=dict(color="#262730"),
+            tickfont=dict(color="#262730")
+        ),
+        yaxis=dict(
+            gridcolor="rgba(128,128,128,0.2)",
+            showline=True,
+            linecolor="rgba(128,128,128,0.3)",
+            title_font=dict(color="#262730"),
+            tickfont=dict(color="#262730")
+        ),
+        height=400,
+        margin=dict(l=0, r=0, t=20, b=40),
+        hovermode="x unified",
+        font=dict(color="#262730")
+    )
+    st.plotly_chart(fig, use_container_width=True)
