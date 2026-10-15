@@ -165,7 +165,7 @@ with customers_tab:
         st.markdown("**RFM segments** — customers scored on Recency, Frequency and Monetary value")
         seg = segments.set_index("segment").reindex(SEGMENT_ORDER).dropna(how="all").reset_index()
         fig = px.bar(seg, x="revenue", y="segment", orientation="h", color="segment",
-                     color_discrete_map=SEGMENT_COLOURS, text=seg["revenue_share"].map(lambda v: pct(v, 0)),
+                     color_discrete_map=SEGMENT_COLOURS, text=seg["revenue_share"].map(lambda v: pct(v, 0 if v >= 0.01 else 1)),
                      custom_data=["customers", "median_recency_days", "median_orders"],
                      labels={"revenue": "Revenue (£)", "segment": ""})
         fig.update_traces(hovertemplate="%{y}<br>Revenue £%{x:,.0f}<br>%{customdata[0]:,} customers"
@@ -230,8 +230,7 @@ with products_tab:
                 "description": "Product",
                 "gross_revenue": st.column_config.NumberColumn("Sold", format="£%.0f"),
                 "returned_value": st.column_config.NumberColumn("Returned", format="£%.0f"),
-                "return_rate": st.column_config.ProgressColumn("Return rate", format="%.0f%%",
-                                                               min_value=0, max_value=100),
+                "return_rate": st.column_config.NumberColumn("Return rate", format="%.0f%%"),
             },
             hide_index=True, width="stretch",
         )
@@ -261,11 +260,13 @@ with markets_tab:
         fig.update_layout(yaxis=dict(autorange="reversed"), hovermode="closest")
         st.plotly_chart(style(fig, 440), width="stretch")
         if len(geo) > 1:
-            st.caption(
-                f"{geo.iloc[0]['country']} accounts for {pct(geo.iloc[0]['revenue_share'], 0)} of revenue. "
-                "Some export markets are a handful of wholesale accounts — e.g. EIRE is ~3% of revenue "
-                "from just 3 identified customers, a concentration risk."
-            )
+            note = f"{geo.iloc[0]['country']} accounts for {pct(geo.iloc[0]['revenue_share'], 0)} of revenue."
+            eire = geo[geo["country"] == "EIRE"]
+            if not eire.empty and eire.iloc[0]["customers"] <= 5:
+                note += (f" Some export markets are a handful of wholesale accounts — EIRE is "
+                         f"{pct(eire.iloc[0]['revenue_share'])} of revenue from just "
+                         f"{int(eire.iloc[0]['customers'])} identified customers, a concentration risk.")
+            st.caption(note)
     with right:
         st.markdown("**When orders are placed** (orders by weekday and hour)")
         if not timing.empty:
