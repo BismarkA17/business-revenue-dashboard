@@ -1,0 +1,41 @@
+{
+  "raw_rows": 1067371,
+  "steps": [
+    {
+      "rule": "drop exact duplicate rows",
+      "rows_removed": 34335,
+      "rows_left": 1033036
+    },
+    {
+      "rule": "drop non-product codes (postage, fees, discounts, manual adjustments)",
+      "rows_removed": 5980,
+      "rows_left": 1027056
+    },
+    {
+      "rule": "drop bad-debt adjustment invoices",
+      "rows_removed": 0,
+      "rows_left": 1027056
+    },
+    {
+      "rule": "drop zero or negative unit prices",
+      "rows_removed": 5928,
+      "rows_left": 1021128
+    },
+    {
+      "rule": "drop zero quantities",
+      "rows_removed": 0,
+      "rows_left": 1021128
+    },
+    {
+      "rule": "drop stock write-offs (negative qty without a cancellation invoice)",
+      "rows_removed": 0,
+      "rows_left": 1021128
+    }
+  ],
+  "clean_rows": 1021128,
+  "sales_rows": 1003214,
+  "return_rows": 17914,
+  "rows_without_customer_id": 226965,
+  "date_min": "2009-12-01 07:45:00",
+  "date_max": "2011-12-09 12:50:00"
+}
