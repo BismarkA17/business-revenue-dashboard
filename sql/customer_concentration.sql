@@ -5,7 +5,7 @@ WITH per_customer AS (
     FROM filtered($start_date, $end_date, $countries)
     WHERE customer_id IS NOT NULL
     GROUP BY customer_id
-    HAVING SUM(revenue) > 0
+    HAVING ROUND(SUM(revenue), 2) > 0
 )
 SELECT
     ROW_NUMBER() OVER (ORDER BY revenue DESC)::DOUBLE / COUNT(*) OVER ()  AS customer_share,
